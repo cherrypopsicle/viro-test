@@ -16,7 +16,8 @@ import {
   Viro3DObject,
   ViroAmbientLight,
   ViroSpotLight,
-  ViroAnimations
+  ViroAnimations,
+  ViroARPlaneSelector
 } from 'react-viro';
 
 export default class HelloWorldSceneAR extends Component {
@@ -43,22 +44,47 @@ export default class HelloWorldSceneAR extends Component {
       // When the onInitialized() state is TRACKING_NORMAL (meaning the application is running), it changes the text state to HelloWorld.
       // Else, it's got no tracking and we do nothing (or handle it). Every ARScene must have the component <ViroARScene> at the top level
       <ViroARScene onTrackingUpdated={this._onInitialized} >
-        <ViroText text={this.state.text} scale={[.5, .5, .5]} position={[0, 0, -0.5]} style={styles.helloWorldTextStyle} />
+        {/* <ViroText text={this.state.text} scale={[.5, .5, .5]} position={[0, 0, -0.5]} style={styles.helloWorldTextStyle} /> */}
         {/* <ViroBox position={[0, 0, -.6]} scale={[.1, .1, .1]} materials={["grid"]} />
-        				<ViroAmbientLight color={"#aaaaaa"} /> */}
+                <ViroAmbientLight color={"#aaaaaa"} /> */}
+        <ViroAmbientLight color={"#aaaaaa"} />
         <ViroSpotLight innerAngle={5} outerAngle={90} direction={[0,-1,-.2]}
-          position={[0, 3, 1]} color="#ffffff" castsShadow={true} />
+          position={[0, 3, -1]} color="#ffffff" castsShadow={true} />
+          <ViroARPlaneSelector>
+          <Viro3DObject
+              source={require('./res/LTGMASK_3dmodel.obj')}
+              resources={[require('./res/LTGMASK_3dmodel.obj'),
+                  require('./res/LTGMASK_3dmodel.obj'),
+                  require('./res/LTGMASK_3dmodel.obj')]}
+              animation={{name:'loopRotate',
+                  run:true,
+                  loop:true}}
+              position={[0, .1, 0]}
+              scale={[.002, .002, .002]}
+              type="OBJ" />
+          </ViroARPlaneSelector>
         <Viro3DObject
-            source={require('./res/LTGMASK_3dmodel.obj')}
-            resources={[require('./res/LTGMASK_3dmodel.obj'),
-                require('./res/LTGMASK_3dmodel.obj'),
-                require('./res/LTGMASK_3dmodel.obj')]}
-            animation={{name:'loopRotate',
-                run:true,
-                loop:true}}
-            position={[0, 0, -1]}
-            scale={[.002, .002, .002]}
-            type="OBJ" />
+              source={require('./res/LTGMASK_3dmodel.obj')}
+              resources={[require('./res/LTGMASK_3dmodel.obj'),
+                  require('./res/LTGMASK_3dmodel.obj'),
+                  require('./res/LTGMASK_3dmodel.obj')]}
+              animation={{name:'loopRotate',
+                  run:true,
+                  loop:true}}
+              position={[0, 0, -1]}
+              scale={[.002, .002, .002]}
+              type="OBJ" />
+        <Viro3DObject
+              source={require('./res/emoji_smile/emoji_smile.vrx')}
+              resources={[require('./res/emoji_smile/emoji_smile_diffuse.png'),
+                  require('./res/emoji_smile/emoji_smile_normal.png'),
+                  require('./res/emoji_smile/emoji_smile_specular.png')]}
+              animation={{name:'loopRotate',
+                  run:true,
+                  loop:true}}
+              position={[-.5, .1, -1]}
+              scale={[.2, .2, .2]}
+              type="VRX" />
       </ViroARScene>
     );
   }
@@ -74,6 +100,7 @@ export default class HelloWorldSceneAR extends Component {
   }
 }
 
+// We declare the styles here. Self-explanatory... 
 var styles = StyleSheet.create({
   helloWorldTextStyle: {
     fontFamily: 'Courier New',
@@ -93,7 +120,7 @@ ViroMaterials.createMaterials({
 
 // Here we declare an animation that loops on rotate. It rotates around the Y axis, which is what we want!
 ViroAnimations.registerAnimations({
-  loopRotate:{properties:{rotateY:"+=45"}, duration:1000},
+  loopRotate:{properties:{rotateY:"+=45"}, duration:500},
 });
 
 module.exports = HelloWorldSceneAR;
