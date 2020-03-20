@@ -4,7 +4,7 @@
 import React, { Component } from 'react';
 
 // next we import StyleSheet from react .. pretty self-explanatory
-import {StyleSheet} from 'react-native';
+import { StyleSheet } from 'react-native';
 
 // Necessary components from react-viro that are required to construct this scene
 import {
@@ -17,7 +17,8 @@ import {
   ViroAmbientLight,
   ViroSpotLight,
   ViroAnimations,
-  ViroARPlaneSelector
+  ViroARPlaneSelector,
+  ViroNode
 } from 'react-viro';
 
 export default class HelloWorldSceneAR extends Component {
@@ -30,23 +31,44 @@ export default class HelloWorldSceneAR extends Component {
 
     // Set initial state here
     this.state = {
-      text : "Initializing AR..."
+      animation: "loopRotate",
+      threeWords: "///searching.for.words"
     };
 
     // bind 'this' to functions
     this._onInitialized = this._onInitialized.bind(this);
   }
 
+  componentDidMount() {
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const location = JSON.stringify(position);
+        this.get3Words(position.coords.latitude, position.coords.longitude)
+      },
+      error => Alert.alert(error.message),
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+    );
+  }
+
+  get3Words(lat, lng) {
+    var textURL = `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat},${lng}&language=en&key=UAT9QR8X`;
+    fetch(textURL, {
+      method: "GET"
+    }).then(res => { res.json().then(result => {
+        this.setState({
+          threeWords: "///" + result.words
+        })
+      })
+      .catch(e => console.error("Oops! Something is going on:  " + e));
+    })
+  }
+
   // In the next part of the component life-cycle, we render() the component. In this case, we are simply returning the ARScene with a child
   // ViroText that contains the initial state text `Initializing AR....`.
   render() {
     return (
-      // When the onInitialized() state is TRACKING_NORMAL (meaning the application is running), it changes the text state to HelloWorld.
-      // Else, it's got no tracking and we do nothing (or handle it). Every ARScene must have the component <ViroARScene> at the top level
       <ViroARScene onTrackingUpdated={this._onInitialized} >
-        {/* <ViroText text={this.state.text} scale={[.5, .5, .5]} position={[0, 0, -0.5]} style={styles.helloWorldTextStyle} /> */}
-        {/* <ViroBox position={[0, 0, -.6]} scale={[.1, .1, .1]} materials={["grid"]} />
-                <ViroAmbientLight color={"#aaaaaa"} /> */}
+        <ViroText text={this.state.threeWords} scale={[1, 1, 1]} position={[.3, 1, -3.0]} style={styles.helloWorldTextStyle} />
         <ViroAmbientLight color={"#aaaaaa"} />
         <ViroSpotLight innerAngle={5} outerAngle={90} direction={[0,-1,-.2]}
           position={[0, 3, -1]} color="#ffffff" castsShadow={true} />
@@ -59,7 +81,7 @@ export default class HelloWorldSceneAR extends Component {
               animation={{name:'loopRotate',
                   run:true,
                   loop:true}}
-              position={[0, .1, 0]}
+              position={[-3, .1, -1]}
               scale={[.002, .002, .002]}
               type="OBJ" />
           </ViroARPlaneSelector>
@@ -71,24 +93,28 @@ export default class HelloWorldSceneAR extends Component {
               animation={{name:'loopRotate',
                   run:true,
                   loop:true}}
-              position={[0, 0, -1]}
+              position={[0, 0, -3]}
               scale={[.002, .002, .002]}
               type="OBJ" />
-        <Viro3DObject
-              source={require('./res/emoji_smile/emoji_smile.vrx')}
-              resources={[require('./res/emoji_smile/emoji_smile_diffuse.png'),
-                  require('./res/emoji_smile/emoji_smile_normal.png'),
-                  require('./res/emoji_smile/emoji_smile_specular.png')]}
-              animation={{name:'loopRotate',
-                  run:true,
-                  loop:true}}
-              position={[-.5, .1, -1]}
-              scale={[.2, .2, .2]}
-              type="VRX" />
+        <ViroNode>
+          <Viro3DObject
+                source={require('./res/emoji_smile/emoji_smile.vrx')}
+                resources={[require('./res/emoji_smile/emoji_smile_diffuse.png'),
+                    require('./res/emoji_smile/emoji_smile_normal.png'),
+                    require('./res/emoji_smile/emoji_smile_specular.png')]}
+                animation={{name: this.state.animation,
+                    run:true,
+                    loop:true}}
+                position={[-.5, .1, -3]}
+                scale={[.6, .6, .6]}
+                type="VRX" />
+        </ViroNode>
       </ViroARScene>
     );
   }
 
+  // When the onInitialized() state is TRACKING_NORMAL (meaning the application is running), it changes the text state to HelloWorld.
+  // Else, it's got no tracking and we do nothing (or handle it). Every ARScene must have the component <ViroARScene> at the top level
   _onInitialized(state, reason) {
     if (state == ViroConstants.TRACKING_NORMAL) {
       this.setState({
@@ -97,6 +123,15 @@ export default class HelloWorldSceneAR extends Component {
     } else if (state == ViroConstants.TRACKING_NONE) {
       // Handle loss of tracking
     }
+  }
+
+  _onDrag(dragToPos, source)  {
+    // this.setState({
+    //   text: "dragging emoji!"
+    // });
+    // dragtoPos[0]: x position
+    // dragtoPos[1]: y position
+    // dragtoPos[2]: z position
   }
 }
 
