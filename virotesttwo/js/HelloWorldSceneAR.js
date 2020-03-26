@@ -21,6 +21,7 @@ import {
   ViroNode
 } from 'react-viro';
 
+let interval;
 export default class HelloWorldSceneAR extends Component {
 
   // In a react component life-cycle, the constructor is called first. 
@@ -32,7 +33,9 @@ export default class HelloWorldSceneAR extends Component {
     // Set initial state here
     this.state = {
       animation: "loopRotate",
-      threeWords: "///searching.for.words"
+      threeWords: "///searching.for.words",
+      position: "",
+      incrementor: 1
     };
 
     // bind 'this' to functions
@@ -40,17 +43,17 @@ export default class HelloWorldSceneAR extends Component {
   }
 
   componentDidMount() {
-    navigator.geolocation.getCurrentPosition(
-      position => {
-        const location = JSON.stringify(position);
-        this.get3Words(position.coords.latitude, position.coords.longitude)
-      },
-      error => Alert.alert(error.message),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
-    );
+    this.interval = setInterval(() => {
+      this.findCoordinates();
+    }, 3000);
   }
 
-  get3Words(lat, lng) {
+  componentWillUnmount() {
+    clearInterval(this.interval);
+    this.setState({ incrementor: 0 });
+  }
+
+  get3Words = (lat, lng) => {
     var textURL = `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat},${lng}&language=en&key=UAT9QR8X`;
     fetch(textURL, {
       method: "GET"
@@ -63,12 +66,27 @@ export default class HelloWorldSceneAR extends Component {
     })
   }
 
+  findCoordinates = () => {
+    // this.setState({ incrementor: this.state.incrementor + 1 });
+      navigator.geolocation.watchPosition(
+        position => {
+          const location = JSON.stringify(position);
+          this.setState({ incrementor: this.state.incrementor + 1});
+          this.setState({position: position.coords.latitude + ", " + position.coords.longitude});
+          this.get3Words(position.coords.latitude, position.coords.longitude);
+        },
+        error => Alert.alert(error.message),
+      );
+  }
+
   // In the next part of the component life-cycle, we render() the component. In this case, we are simply returning the ARScene with a child
   // ViroText that contains the initial state text `Initializing AR....`.
   render() {
     return (
       <ViroARScene onTrackingUpdated={this._onInitialized} >
         <ViroText text={this.state.threeWords} scale={[1, 1, 1]} position={[.3, 1, -3.0]} style={styles.helloWorldTextStyle} />
+        <ViroText text={this.state.position} scale={[1, 1, 1]} position={[.3, 0.5, -3.0]} style={styles.helloWorldTextStyle} />
+        <ViroText text={this.state.incrementor.toString()} scale={[1, 1, 1]} position={[.3, 0, -3.0]} style={styles.helloWorldTextStyle} />
         <ViroAmbientLight color={"#aaaaaa"} />
         <ViroSpotLight innerAngle={5} outerAngle={90} direction={[0,-1,-.2]}
           position={[0, 3, -1]} color="#ffffff" castsShadow={true} />
@@ -140,7 +158,8 @@ var styles = StyleSheet.create({
   helloWorldTextStyle: {
     fontFamily: 'Courier New',
     fontSize: 20,
-    color: '#ffffff',
+    color: '#e11f26',
+    fontWeight: 'bold',
     textAlignVertical: 'center',
     textAlign: 'center',  
   },
