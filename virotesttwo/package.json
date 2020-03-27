@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@react-native-community/geolocation": "^2.0.2",
+    "mercator-projection": "0.0.2",
     "react": "16.8.3",
     "react-native": "0.59.3",
     "react-viro": "^2.17.0"
