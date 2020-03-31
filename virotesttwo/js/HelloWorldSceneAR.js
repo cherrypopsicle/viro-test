@@ -42,7 +42,8 @@ export default class HelloWorldSceneAR extends Component {
       longitude: "",
       devicePosition: {},
       incrementor: 1,
-      grid: "no grid yet"
+      grid: "no grid yet",
+      landmarks: ""
     };
 
     // bind 'this' to functions
@@ -53,12 +54,33 @@ export default class HelloWorldSceneAR extends Component {
     this.interval = setInterval(() => {
       this.findCoordinates();
     }, 3000);
+    this.testLandmarks();
   }
 
   componentWillUnmount() {
     clearInterval(this.interval);
     this.setState({ incrementor: 0 });
   }
+
+  testLandmarks = () => {
+    // must use ngrok for requests to work on iOS!
+    const textUrl = `https://f875121d.ngrok.io/landmarks`;
+    console.log(textUrl);
+    fetch(textUrl, {
+      method: "GET"
+    })
+      .then(res => {
+        res
+          .json()
+          .then(result => {
+            this.setState({landmarks: JSON.stringify(result)});
+          })
+          .catch(e => console.error("Oops! Something is going on:  " + e));
+      })
+      .catch(e => {
+        console.error("Ooops!! Here is the error: " + e);
+      });
+  };
 
   findCoordinates = () => {
     // this.setState({ incrementor: this.state.incrementor + 1 });
@@ -99,6 +121,7 @@ export default class HelloWorldSceneAR extends Component {
     });
   };
 
+  // TODO: Explain this algorithm for people reading this so they can get a better understanding on what the fk is going on.
   getGrid = (lat, lng) => {
     var southWestLat = lat - 0.001;
     var southWestLng = lng - 0.001;
@@ -119,7 +142,8 @@ export default class HelloWorldSceneAR extends Component {
       });
   };
 
-  renderGrid = (result) => {
+  // TODO: Explain this mother clucking algorithm as well .. come on bro what the fuck
+  renderGrid = result => {
     var gridList = [];
     for (let element of result.lines) {
       var startPoint = merc.fromLatLngToPoint({
@@ -138,9 +162,10 @@ export default class HelloWorldSceneAR extends Component {
       var endPosition = { x: endPositionX, z: endPositionZ };
       var position = { start: startPosition, end: endPosition };
       gridList.push(position);
-    };
+    }
     console.log(gridList);
     this.grid = gridList.map(element => (
+      // RENDER THIS SHIT PROPERLY
       <ViroPolyline
         key={start.x}
         points={[
@@ -170,13 +195,7 @@ export default class HelloWorldSceneAR extends Component {
           style={styles.helloWorldTextStyle}
         />
         <ViroText
-          text={this.state.incrementor.toString()}
-          scale={[1, 1, 1]}
-          position={[0.3, 0, -3.0]}
-          style={styles.helloWorldTextStyle}
-        />
-        <ViroText
-          text={this.state.grid}
+          text={this.state.landmarks}
           scale={[1, 1, 1]}
           position={[-0.6, 0, -1.0]}
           style={styles.helloWorldTextStyle}
