@@ -54,7 +54,7 @@ export default class HelloWorldSceneAR extends Component {
     this.interval = setInterval(() => {
       this.findCoordinates();
     }, 3000);
-    this.testLandmarks();
+    // this.testLandmarks();
   }
 
   componentWillUnmount() {
@@ -98,6 +98,7 @@ export default class HelloWorldSceneAR extends Component {
           lng: position.coords.longitude,
           devicePosition: devicePosition
         });
+        console.log(devicePosition);
         this.get3Words(position.coords.latitude, position.coords.longitude);
         this.getGrid(position.coords.latitude, position.coords.longitude);
       },
@@ -121,7 +122,11 @@ export default class HelloWorldSceneAR extends Component {
     });
   };
 
-  // TODO: Explain this algorithm for people reading this so they can get a better understanding on what the fk is going on.
+  /**
+   * getGrid takes the lat and lng of the device then it gets a north east corner by .001 degrees (roughly 1/3rd of a kilometer) and the southwest corner as well.
+   * These two corners are needed for W3W in order to make a grid surrounding the device. This way, whenever a user uses this application, they get a grid displayed real-time around
+   * them to interact with. 
+   */
   getGrid = (lat, lng) => {
     var southWestLat = lat - 0.001;
     var southWestLng = lng - 0.001;
@@ -142,7 +147,7 @@ export default class HelloWorldSceneAR extends Component {
       });
   };
 
-  // TODO: Explain this mother clucking algorithm as well .. come on bro what the fuck
+  // This function tkaes the grid found before and renders using ViroPolyline
   renderGrid = result => {
     var gridList = [];
     for (let element of result.lines) {
@@ -154,8 +159,10 @@ export default class HelloWorldSceneAR extends Component {
         lat: element.end.lat,
         lng: element.end.lng
       });
-      var startPositionX = startPoint.x - this.state.devicePosition.x;
-      var startPositionZ = startPoint.y - this.state.devicePosition.y;
+      console.log(startPoint);
+      console.log(endPoint);
+      var startPositionX = (startPoint.x * 2.12) - this.state.devicePosition.x;
+      var startPositionZ = (startPoint.y * 2.12) - this.state.devicePosition.y;
       var endPositionX = endPoint.x - this.state.devicePosition.x;
       var endPositionZ = endPoint.y - this.state.devicePosition.y;
       var startPosition = { x: startPositionX, z: startPositionZ };
@@ -163,14 +170,14 @@ export default class HelloWorldSceneAR extends Component {
       var position = { start: startPosition, end: endPosition };
       gridList.push(position);
     }
-    console.log(gridList);
-    this.grid = gridList.map(element => (
-      // RENDER THIS SHIT PROPERLY
+    this.grid = gridList.map((element, index) => (
+      // TODO: RENDER THIS PROPERLY
       <ViroPolyline
-        key={start.x}
+        key={index}
+        position={[element.start.x, 0, element.end.z]}
         points={[
-          [element.start.x, 0, element.start.y],
-          [element.end.x, 0, element.end.y]
+          [element.start.x, 0, element.start.z],
+          [element.end.x, 0, element.end.z]
         ]}
       ></ViroPolyline>
     ));
