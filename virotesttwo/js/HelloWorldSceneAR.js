@@ -22,7 +22,8 @@ import {
   ViroAnimations,
   ViroARPlaneSelector,
   ViroNode,
-  ViroPolyline
+  ViroPolyline,
+  ViroPolygon
 } from "react-viro";
 
 let interval;
@@ -63,30 +64,30 @@ export default class HelloWorldSceneAR extends Component {
   }
 
   testLandmarks = () => {
+    console.log("testing");
     // must use ngrok for requests to work on iOS!
-    const textUrl = `https://f875121d.ngrok.io/landmarks`;
-    console.log(textUrl);
-    fetch(textUrl, {
-      method: "GET"
-    })
-      .then(res => {
-        res
-          .json()
-          .then(result => {
-            this.setState({landmarks: JSON.stringify(result)});
-          })
-          .catch(e => console.error("Oops! Something is going on:  " + e));
-      })
-      .catch(e => {
-        console.error("Ooops!! Here is the error: " + e);
-      });
+    // const textUrl = `https://f875121d.ngrok.io/landmarks`;
+    // console.log(textUrl);
+    // fetch(textUrl, {
+    //   method: "GET"
+    // })
+    //   .then(res => {
+    //     res
+    //       .json()
+    //       .then(result => {
+    //         this.setState({landmarks: JSON.stringify(result)});
+    //       })
+    //       .catch(e => console.error("Oops! Something is going on:  " + e));
+    //   })
+    //   .catch(e => {
+    //     console.error("Ooops!! Here is the error: " + e);
+    //   });
   };
 
   findCoordinates = () => {
     // this.setState({ incrementor: this.state.incrementor + 1 });
     navigator.geolocation.watchPosition(
       position => {
-        const location = JSON.stringify(position);
         var devicePosition = merc.fromLatLngToPoint({
           lat: Number(position.coords.latitude),
           lng: Number(position.coords.longitude)
@@ -125,7 +126,7 @@ export default class HelloWorldSceneAR extends Component {
   /**
    * getGrid takes the lat and lng of the device then it gets a north east corner by .001 degrees (roughly 1/3rd of a kilometer) and the southwest corner as well.
    * These two corners are needed for W3W in order to make a grid surrounding the device. This way, whenever a user uses this application, they get a grid displayed real-time around
-   * them to interact with. 
+   * them to interact with.
    */
   getGrid = (lat, lng) => {
     var southWestLat = lat - 0.001;
@@ -160,9 +161,9 @@ export default class HelloWorldSceneAR extends Component {
         lat: element.end.lat,
         lng: element.end.lng
       });
-      var startEnd = {start: startPoint, end: endPoint};
+      var startEnd = { start: startPoint, end: endPoint };
       mercList.push(startEnd);
-      var startPositionX = startPoint.x  - this.state.devicePosition.x;
+      var startPositionX = startPoint.x - this.state.devicePosition.x;
       var startPositionZ = startPoint.y - this.state.devicePosition.y;
       var endPositionX = endPoint.x - this.state.devicePosition.x;
       var endPositionZ = endPoint.y - this.state.devicePosition.y;
@@ -179,13 +180,13 @@ export default class HelloWorldSceneAR extends Component {
       // TODO: RENDER THIS PROPERLY
       <ViroPolyline
         key={index}
-        position={[element.start.x, 0, element.start.z]}
+        position={[element.start.x, -0.5, element.start.z]}
         points={[
           [element.start.x, 0, element.start.z],
           [element.end.x, 0, element.end.z]
         ]}
-        thickness={0.000001}
-        scale={[10,10,10]}
+        thickness={0.0001}
+        style={styles.polyLine}
       ></ViroPolyline>
     ));
   };
@@ -196,6 +197,10 @@ export default class HelloWorldSceneAR extends Component {
     return (
       <ViroARScene onTrackingUpdated={this._onInitialized}>
         {this.grid}
+        <ViroPolygon rotation={[-90, 0, 0]}
+             position={[0,0,-1]}
+             vertices={[[-1,0], [0,1], [1,0], [0, -1]]}
+             materials={"purple"}/>
         <ViroText
           text={this.state.threeWords}
           scale={[1, 1, 1]}
@@ -223,7 +228,7 @@ export default class HelloWorldSceneAR extends Component {
           color="#ffffff"
           castsShadow={true}
         />
-        <ViroARPlaneSelector>
+        {/* <ViroARPlaneSelector>
           <Viro3DObject
             source={require("./res/LTGMASK_3dmodel.obj")}
             resources={[
@@ -236,7 +241,20 @@ export default class HelloWorldSceneAR extends Component {
             scale={[0.002, 0.002, 0.002]}
             type="OBJ"
           />
-        </ViroARPlaneSelector>
+        </ViroARPlaneSelector> */}
+        {/* <Viro3DObject
+          source={require("./res/LTGMASK_3dmodel.obj")}
+          resources={[
+            require("./res/LTGMASK_3dmodel.obj"),
+            require("./res/LTGMASK_3dmodel.obj"),
+            require("./res/LTGMASK_3dmodel.obj")
+          ]}
+          materials={["purple"]}
+          animation={{ name: "loopRotate", run: true, loop: true }}
+          position={[-.2, -0.25, -0.5]}
+          scale={[0.002, 0.002, 0.002]}
+          type="OBJ"
+        />
         <Viro3DObject
           source={require("./res/LTGMASK_3dmodel.obj")}
           resources={[
@@ -244,12 +262,13 @@ export default class HelloWorldSceneAR extends Component {
             require("./res/LTGMASK_3dmodel.obj"),
             require("./res/LTGMASK_3dmodel.obj")
           ]}
+          materials={["grass"]}
           animation={{ name: "loopRotate", run: true, loop: true }}
-          position={[0, 0, -3]}
+          position={[0.2, -0.25, -0.5]}
           scale={[0.002, 0.002, 0.002]}
           type="OBJ"
-        />
-        <ViroNode>
+        /> */}
+        {/* <ViroNode>
           <Viro3DObject
             source={require("./res/emoji_smile/emoji_smile.vrx")}
             resources={[
@@ -262,7 +281,7 @@ export default class HelloWorldSceneAR extends Component {
             scale={[0.6, 0.6, 0.6]}
             type="VRX"
           />
-        </ViroNode>
+        </ViroNode> */}
       </ViroARScene>
     );
   }
@@ -298,6 +317,9 @@ var styles = StyleSheet.create({
     fontWeight: "bold",
     textAlignVertical: "center",
     textAlign: "center"
+  },
+  polyLine: {
+    color: "#e11f26"
   }
 });
 
@@ -305,6 +327,12 @@ var styles = StyleSheet.create({
 ViroMaterials.createMaterials({
   grid: {
     diffuseTexture: require("./res/grid_bg.jpg")
+  },
+  purple: {
+    diffuseTexture: require("./res/Cliffwall.png")
+  },
+  grass: {
+    diffuseTexture: require("./res/Grass.png")
   }
 });
 
