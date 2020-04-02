@@ -101,7 +101,8 @@ export default class ViroSample extends Component {
     return (
       <View style={{flex: 1}}>
         <ViroARSceneNavigator {...this.state.sharedProps}
-          initialScene={{scene: InitialARScene}}/>
+          initialScene={{scene: InitialARScene}}
+          worldAlignment={{worldAlignment: "GravityAndHeading"}}/>
         <View style={localStyles.crosshair}/>
       </View>
     );

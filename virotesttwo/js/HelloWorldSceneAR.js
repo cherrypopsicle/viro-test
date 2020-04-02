@@ -23,7 +23,7 @@ import {
   ViroARPlaneSelector,
   ViroNode,
   ViroPolyline,
-  ViroPolygon
+  ViroQuad
 } from "react-viro";
 
 let interval;
@@ -163,10 +163,10 @@ export default class HelloWorldSceneAR extends Component {
       });
       var startEnd = { start: startPoint, end: endPoint };
       mercList.push(startEnd);
-      var startPositionX = startPoint.x - this.state.devicePosition.x;
-      var startPositionZ = startPoint.y - this.state.devicePosition.y;
-      var endPositionX = endPoint.x - this.state.devicePosition.x;
-      var endPositionZ = endPoint.y - this.state.devicePosition.y;
+      var startPositionX = (startPoint.x - this.state.devicePosition.x) * 100000;
+      var startPositionZ = (startPoint.y - this.state.devicePosition.y) * 100000;
+      var endPositionX = (endPoint.x - this.state.devicePosition.x) * 100000;
+      var endPositionZ = (endPoint.y - this.state.devicePosition.y) * 100000;
       var startPosition = { x: startPositionX, z: startPositionZ };
       var endPosition = { x: endPositionX, z: endPositionZ };
       var position = { start: startPosition, end: endPosition };
@@ -180,12 +180,12 @@ export default class HelloWorldSceneAR extends Component {
       // TODO: RENDER THIS PROPERLY
       <ViroPolyline
         key={index}
-        position={[element.start.x, -0.5, element.start.z]}
+        position={[element.start.x / 2, -2.0, element.end.z / 2]}
         points={[
-          [element.start.x, 0, element.start.z],
-          [element.end.x, 0, element.end.z]
+          [element.start.x, -2.0, element.start.z],
+          [element.end.x, -2.0, element.end.z]
         ]}
-        thickness={0.0001}
+        thickness={.25}
         style={styles.polyLine}
       ></ViroPolyline>
     ));
@@ -197,10 +197,6 @@ export default class HelloWorldSceneAR extends Component {
     return (
       <ViroARScene onTrackingUpdated={this._onInitialized}>
         {this.grid}
-        <ViroPolygon rotation={[-90, 0, 0]}
-             position={[0,0,-1]}
-             vertices={[[-1,0], [0,1], [1,0], [0, -1]]}
-             materials={"purple"}/>
         <ViroText
           text={this.state.threeWords}
           scale={[1, 1, 1]}
