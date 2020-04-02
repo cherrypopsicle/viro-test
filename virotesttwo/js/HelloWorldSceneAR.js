@@ -89,7 +89,7 @@ export default class HelloWorldSceneAR extends Component {
         const location = JSON.stringify(position);
         var devicePosition = merc.fromLatLngToPoint({
           lat: Number(position.coords.latitude),
-          lng: Number(position.coords.latitude)
+          lng: Number(position.coords.longitude)
         });
         // this.setState({ incrementor: this.state.incrementor + 1 });
         this.setState({
@@ -150,6 +150,7 @@ export default class HelloWorldSceneAR extends Component {
   // This function tkaes the grid found before and renders using ViroPolyline
   renderGrid = result => {
     var gridList = [];
+    var mercList = [];
     for (let element of result.lines) {
       var startPoint = merc.fromLatLngToPoint({
         lat: element.start.lat,
@@ -159,10 +160,10 @@ export default class HelloWorldSceneAR extends Component {
         lat: element.end.lat,
         lng: element.end.lng
       });
-      console.log(startPoint);
-      console.log(endPoint);
-      var startPositionX = (startPoint.x * 2.12) - this.state.devicePosition.x;
-      var startPositionZ = (startPoint.y * 2.12) - this.state.devicePosition.y;
+      var startEnd = {start: startPoint, end: endPoint};
+      mercList.push(startEnd);
+      var startPositionX = startPoint.x  - this.state.devicePosition.x;
+      var startPositionZ = startPoint.y - this.state.devicePosition.y;
       var endPositionX = endPoint.x - this.state.devicePosition.x;
       var endPositionZ = endPoint.y - this.state.devicePosition.y;
       var startPosition = { x: startPositionX, z: startPositionZ };
@@ -170,15 +171,21 @@ export default class HelloWorldSceneAR extends Component {
       var position = { start: startPosition, end: endPosition };
       gridList.push(position);
     }
+    console.log("Grid list");
+    console.log(gridList);
+    console.log("Merc list");
+    console.log(mercList);
     this.grid = gridList.map((element, index) => (
       // TODO: RENDER THIS PROPERLY
       <ViroPolyline
         key={index}
-        position={[element.start.x, 0, element.end.z]}
+        position={[element.start.x, 0, element.start.z]}
         points={[
           [element.start.x, 0, element.start.z],
           [element.end.x, 0, element.end.z]
         ]}
+        thickness={0.000001}
+        scale={[10,10,10]}
       ></ViroPolyline>
     ));
   };
