@@ -20,7 +20,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/landmarks", landmarkRoutes);
+app.use("/markers", landmarkRoutes);
 
 db.initDb((err, db) => {
     if (err) {

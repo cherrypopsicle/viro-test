@@ -1,7 +1,7 @@
 const mongodb = require("mongodb");
 const mongoClient = mongodb.MongoClient;
 const uri =
-  "mongodb+srv://cherrypop:cherrypopper@cluster0-5vn2s.mongodb.net/landmarkData?retryWrites=true&w=majority";
+  "mongodb+srv://cherrypop:cherrypopper@cluster0-5vn2s.mongodb.net/ar-test?retryWrites=true&w=majority";
 
 // variable that initializes if database is connected
 let _db;

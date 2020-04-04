@@ -23,7 +23,7 @@ import {
   ViroARPlaneSelector,
   ViroNode,
   ViroPolyline,
-  ViroQuad
+  ViroQuad,
 } from "react-viro";
 
 let interval;
@@ -44,7 +44,7 @@ export default class HelloWorldSceneAR extends Component {
       devicePosition: {},
       incrementor: 1,
       grid: "no grid yet",
-      landmarks: ""
+      landmarks: "",
     };
 
     // bind 'this' to functions
@@ -52,10 +52,9 @@ export default class HelloWorldSceneAR extends Component {
   }
 
   componentDidMount() {
-    this.interval = setInterval(() => {
-      this.findCoordinates();
-    }, 3000);
-    // this.testLandmarks();
+    this.findCoordinates();
+    // this.interval = setInterval(() => {
+    // }, 3000);
   }
 
   componentWillUnmount() {
@@ -63,63 +62,113 @@ export default class HelloWorldSceneAR extends Component {
     this.setState({ incrementor: 0 });
   }
 
-  testLandmarks = () => {
-    console.log("testing");
-    // must use ngrok for requests to work on iOS!
-    // const textUrl = `https://f875121d.ngrok.io/landmarks`;
-    // console.log(textUrl);
-    // fetch(textUrl, {
-    //   method: "GET"
-    // })
-    //   .then(res => {
-    //     res
-    //       .json()
-    //       .then(result => {
-    //         this.setState({landmarks: JSON.stringify(result)});
-    //       })
-    //       .catch(e => console.error("Oops! Something is going on:  " + e));
-    //   })
-    //   .catch(e => {
-    //     console.error("Ooops!! Here is the error: " + e);
-    //   });
-  };
-
   findCoordinates = () => {
     // this.setState({ incrementor: this.state.incrementor + 1 });
     navigator.geolocation.watchPosition(
-      position => {
+      (position) => {
         var devicePosition = merc.fromLatLngToPoint({
           lat: Number(position.coords.latitude),
-          lng: Number(position.coords.longitude)
+          lng: Number(position.coords.longitude),
         });
         // this.setState({ incrementor: this.state.incrementor + 1 });
         this.setState({
           position: position.coords.latitude + ", " + position.coords.longitude,
           lat: position.coords.latitude,
           lng: position.coords.longitude,
-          devicePosition: devicePosition
+          devicePosition: devicePosition,
         });
-        console.log(devicePosition);
         this.get3Words(position.coords.latitude, position.coords.longitude);
-        this.getGrid(position.coords.latitude, position.coords.longitude);
+        this.testLandmarks();
+        // this.getGrid(position.coords.latitude, position.coords.longitude);
       },
-      error => Alert.alert(error.message)
+      (error) => Alert.alert(error.message)
     );
+  };
+
+  testLandmarks = () => {
+    // must use ngrok for requests to work on iOS!
+    const textUrl = `https://9a7a2d91.ngrok.io/markers`;
+    fetch(textUrl, {
+      method: "GET",
+    })
+      .then((res) => {
+        res
+          .json()
+          .then((result) => {
+            const allMarkers = [];
+            for (let landmark of result) {
+              // this.getCoordinatesFrom3Words(landmark.w3w);
+              const point = merc.fromLatLngToPoint({
+                lat: 45.538042,
+                lng: -73.697234,
+              });
+              console.log(point);
+              const location = {
+                name: landmark.name,
+                x: (point.x - this.state.devicePosition.x) * 10000,
+                z: (point.y - this.state.devicePosition.y) * 10000,
+              };
+              allMarkers.push(location);
+            }
+            this.markers = allMarkers.map((result, index) => (
+              <ViroNode key={index}>
+                <Viro3DObject
+                  source={require("./res/LTGMASK_3dmodel.obj")}
+                  resources={[
+                    require("./res/LTGMASK_3dmodel.obj"),
+                    require("./res/LTGMASK_3dmodel.obj"),
+                    require("./res/LTGMASK_3dmodel.obj"),
+                  ]}
+                  materials={["purple"]}
+                  animation={{ name: "loopRotate", run: true, loop: true }}
+                  position={[result.x, 0.25, result.z]}
+                  scale={[0.005, 0.005, 0.005]}
+                  type="OBJ"
+                ></Viro3DObject>
+                <ViroText
+                  text={result.name}
+                  scale={[1, 1, 1]}
+                  position={[result.x, 0.35, result.z]}
+                  style={styles.helloWorldTextStyle}
+                />
+              </ViroNode>
+            ));
+          })
+          .catch((e) => console.error("Oops! Something is going on:  " + e));
+      })
+      .catch((e) => {
+        console.error("Ooops!! Here is the error: " + e);
+      });
   };
 
   get3Words = (lat, lng) => {
     var textURL = `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat},${lng}&language=en&key=UAT9QR8X`;
     fetch(textURL, {
-      method: "GET"
-    }).then(res => {
+      method: "GET",
+    }).then((res) => {
       res
         .json()
-        .then(result => {
+        .then((result) => {
           this.setState({
-            threeWords: "///" + result.words
+            threeWords: "///" + result.words,
           });
         })
-        .catch(e => console.error("Oops! Something is going on:  " + e));
+        .catch((e) => console.error("Oops! Something is going on:  " + e));
+    });
+  };
+
+  getCoordinatesFrom3Words = (words) => {
+    console.log(words);
+    var textUrl = `https://api.what3words.com/v3/convert-to-coordinates?words=${words}&key=UAT9QR8X`;
+    fetch(textUrl, {
+      method: "GET",
+    }).then((res) => {
+      res
+        .json()
+        .then((result) => {
+          console.log(result.coordinates);
+        })
+        .catch((e) => console.error("Oops! Something is going on:  " + e));
     });
   };
 
@@ -135,36 +184,38 @@ export default class HelloWorldSceneAR extends Component {
     var northEastLng = lng + 0.001;
     var textUrl = `https://api.what3words.com/v3/grid-section?key=UAT9QR8X&bounding-box=${southWestLat}%2C${southWestLng}%2C${northEastLat}%2C${northEastLng}&format=json`;
     fetch(textUrl, {
-      method: "Get"
+      method: "Get",
     })
-      .then(res => {
-        res.json().then(result => {
+      .then((res) => {
+        res.json().then((result) => {
           this.renderGrid(result);
           // this.setState({ grid: JSON.stringify(result) });
         });
       })
-      .catch(e => {
+      .catch((e) => {
         this.setState({ grid: e.toString() });
       });
   };
 
   // This function tkaes the grid found before and renders using ViroPolyline
-  renderGrid = result => {
+  renderGrid = (result) => {
     var gridList = [];
     var mercList = [];
     for (let element of result.lines) {
       var startPoint = merc.fromLatLngToPoint({
         lat: element.start.lat,
-        lng: element.start.lng
+        lng: element.start.lng,
       });
       var endPoint = merc.fromLatLngToPoint({
         lat: element.end.lat,
-        lng: element.end.lng
+        lng: element.end.lng,
       });
       var startEnd = { start: startPoint, end: endPoint };
       mercList.push(startEnd);
-      var startPositionX = (startPoint.x - this.state.devicePosition.x) * 100000;
-      var startPositionZ = (startPoint.y - this.state.devicePosition.y) * 100000;
+      var startPositionX =
+        (startPoint.x - this.state.devicePosition.x) * 100000;
+      var startPositionZ =
+        (startPoint.y - this.state.devicePosition.y) * 100000;
       var endPositionX = (endPoint.x - this.state.devicePosition.x) * 100000;
       var endPositionZ = (endPoint.y - this.state.devicePosition.y) * 100000;
       var startPosition = { x: startPositionX, z: startPositionZ };
@@ -183,9 +234,9 @@ export default class HelloWorldSceneAR extends Component {
         position={[element.start.x / 2, -2.0, element.end.z / 2]}
         points={[
           [element.start.x, -2.0, element.start.z],
-          [element.end.x, -2.0, element.end.z]
+          [element.end.x, -2.0, element.end.z],
         ]}
-        thickness={.25}
+        thickness={0.25}
         style={styles.polyLine}
       ></ViroPolyline>
     ));
@@ -196,7 +247,8 @@ export default class HelloWorldSceneAR extends Component {
   render() {
     return (
       <ViroARScene onTrackingUpdated={this._onInitialized}>
-        {this.grid}
+        {/* {this.grid} */}
+        {this.markers}
         <ViroText
           text={this.state.threeWords}
           scale={[1, 1, 1]}
@@ -287,7 +339,7 @@ export default class HelloWorldSceneAR extends Component {
   _onInitialized(state, reason) {
     if (state == ViroConstants.TRACKING_NORMAL) {
       this.setState({
-        text: "LONO THE GOD"
+        text: "LONO THE GOD",
       });
     } else if (state == ViroConstants.TRACKING_NONE) {
       // Handle loss of tracking
@@ -312,29 +364,29 @@ var styles = StyleSheet.create({
     color: "#e11f26",
     fontWeight: "bold",
     textAlignVertical: "center",
-    textAlign: "center"
+    textAlign: "center",
   },
   polyLine: {
-    color: "#e11f26"
-  }
+    color: "#e11f26",
+  },
 });
 
 // We define the 'grid' value here. The require() function is a special function which converts the filepath into a value to be used, so the platform can fetch and use this resource.
 ViroMaterials.createMaterials({
   grid: {
-    diffuseTexture: require("./res/grid_bg.jpg")
+    diffuseTexture: require("./res/grid_bg.jpg"),
   },
   purple: {
-    diffuseTexture: require("./res/Cliffwall.png")
+    diffuseTexture: require("./res/Cliffwall.png"),
   },
   grass: {
-    diffuseTexture: require("./res/Grass.png")
-  }
+    diffuseTexture: require("./res/Grass.png"),
+  },
 });
 
 // Here we declare an animation that loops on rotate. It rotates around the Y axis, which is what we want!
 ViroAnimations.registerAnimations({
-  loopRotate: { properties: { rotateY: "+=45" }, duration: 500 }
+  loopRotate: { properties: { rotateY: "+=45" }, duration: 500 },
 });
 
 module.exports = HelloWorldSceneAR;

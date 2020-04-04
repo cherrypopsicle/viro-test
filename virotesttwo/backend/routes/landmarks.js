@@ -6,22 +6,20 @@ const Decimal128 = mongodb.Decimal128;
 
 const router = Router();
 
-// Get list of landmarks
 router.get("/", (req, res, next) => {
-  const landmarks = [];
-  console.log("landmarks found");
+  const markers = [];
   db.getDb()
     .db()
-    .collection("landmarks")
+    .collection("markers")
     .find()
     // .sort({price: -1})
     // .skip((queryPage - 1) * pageSize)
     // .limit(pageSize)
-    .forEach(landmark => {
-      landmarks.push(landmark);
+    .forEach(marker => {
+      markers.push(marker);
     })
     .then(result => {
-      res.status(200).json(landmarks);
+      res.status(200).json(markers);
     })
     .catch(e => {
       console.log(e);
