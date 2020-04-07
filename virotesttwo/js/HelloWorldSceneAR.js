@@ -64,7 +64,7 @@ export default class HelloWorldSceneAR extends Component {
 
   findCoordinates = () => {
     // this.setState({ incrementor: this.state.incrementor + 1 });
-    navigator.geolocation.watchPosition(
+    navigator.geolocation.getCurrentPosition(
       (position) => {
         var devicePosition = merc.fromLatLngToPoint({
           lat: Number(position.coords.latitude),
@@ -87,7 +87,7 @@ export default class HelloWorldSceneAR extends Component {
 
   testLandmarks = () => {
     // must use ngrok for requests to work on iOS!
-    const textUrl = `https://9a7a2d91.ngrok.io/markers`;
+    const textUrl = `https://d1388136.ngrok.io/markers`;
     fetch(textUrl, {
       method: "GET",
     })
@@ -97,18 +97,18 @@ export default class HelloWorldSceneAR extends Component {
           .then((result) => {
             const allMarkers = [];
             for (let landmark of result) {
-              // this.getCoordinatesFrom3Words(landmark.w3w);
+              console.log(landmark);
               const point = merc.fromLatLngToPoint({
-                lat: 45.538042,
-                lng: -73.697234,
+                lat: landmark.location.coordinates[1],
+                lng: landmark.location.coordinates[0],
               });
-              console.log(point);
-              const location = {
+              const marker = {
                 name: landmark.name,
-                x: (point.x - this.state.devicePosition.x) * 10000,
-                z: (point.y - this.state.devicePosition.y) * 10000,
+                x: (point.x - this.state.devicePosition.x) * 100000,
+                z: (point.y - this.state.devicePosition.y) * 100000,
               };
-              allMarkers.push(location);
+              console.log(marker);
+              allMarkers.push(marker);
             }
             this.markers = allMarkers.map((result, index) => (
               <ViroNode key={index}>
@@ -128,7 +128,7 @@ export default class HelloWorldSceneAR extends Component {
                 <ViroText
                   text={result.name}
                   scale={[1, 1, 1]}
-                  position={[result.x, 0.35, result.z]}
+                  position={[result.x, -0.35, result.z]}
                   style={styles.helloWorldTextStyle}
                 />
               </ViroNode>
@@ -160,16 +160,15 @@ export default class HelloWorldSceneAR extends Component {
   getCoordinatesFrom3Words = (words) => {
     console.log(words);
     var textUrl = `https://api.what3words.com/v3/convert-to-coordinates?words=${words}&key=UAT9QR8X`;
-    fetch(textUrl, {
+    return fetch(textUrl, {
       method: "GET",
-    }).then((res) => {
-      res
-        .json()
-        .then((result) => {
-          console.log(result.coordinates);
-        })
-        .catch((e) => console.error("Oops! Something is going on:  " + e));
-    });
+    })
+      .then((res) => res.json())
+      .then((responseData) => {
+        console.log(responseData);
+        return responseData;
+      })
+      .catch((err) => console.warn(err));
   };
 
   /**
